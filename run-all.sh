@@ -6,6 +6,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="$ROOT/micronaut-application-layer/target"
 MEASURE_INTERVAL="${MEASURE_INTERVAL:-10}"
 COPIES_PER_APP="${COPIES_PER_APP:-1}"
+REUSE_APP_BINARIES="${REUSE_APP_BINARIES:-0}"
+SUMMARY_ONLY="${SUMMARY_ONLY:-0}"
 
 source "$ROOT/scripts/app-config.sh"
 source "$ROOT/scripts/memory-lib.sh"
@@ -38,10 +40,18 @@ require_runtime_artifacts() {
     for app in "${LANGUAGES[@]}"; do
         image_name="$(image_name_for_app "$app")"
         for ((copy = 1; copy <= COPIES_PER_APP; copy++)); do
-            binary_name="$(copy_name_for_image "$image_name" "$copy" "$COPIES_PER_APP")"
+            if [[ "$REUSE_APP_BINARIES" -eq 1 ]]; then
+                binary_name="$image_name"
+            else
+                binary_name="$(copy_name_for_image "$image_name" "$copy" "$COPIES_PER_APP")"
+            fi
             if [[ ! -x "$TARGET_DIR/$binary_name" ]]; then
                 echo "Missing layered app binary: $TARGET_DIR/$binary_name" >&2
-                echo "Build the layered apps first with COPIES_PER_APP=$COPIES_PER_APP ./build-all-apps.sh" >&2
+                if [[ "$REUSE_APP_BINARIES" -eq 1 ]]; then
+                    echo "Build the layered apps first with ./build-all-apps.sh" >&2
+                else
+                    echo "Build the layered apps first with COPIES_PER_APP=$COPIES_PER_APP ./build-all-apps.sh" >&2
+                fi
                 exit 1
             fi
         done
@@ -83,7 +93,11 @@ for i in "${!LANGUAGES[@]}"; do
 
     for ((copy = 1; copy <= COPIES_PER_APP; copy++)); do
         port=$((PORTS[$i] + (copy - 1) * ${#LANGUAGES[@]}))
-        binary_name="$(copy_name_for_image "$image_name" "$copy" "$COPIES_PER_APP")"
+        if [[ "$REUSE_APP_BINARIES" -eq 1 ]]; then
+            binary_name="$image_name"
+        else
+            binary_name="$(copy_name_for_image "$image_name" "$copy" "$COPIES_PER_APP")"
+        fi
         log_file="$(mktemp)"
 
         "$TARGET_DIR/$binary_name" "--micronaut.server.port=$port" >"$log_file" 2>&1 &
@@ -92,7 +106,9 @@ for i in "${!LANGUAGES[@]}"; do
         PIDS+=("$pid")
         LOG_FILES+=("$log_file")
         BINARY_NAMES+=("$binary_name")
-        echo "  Started $binary_name on port $port (PID $pid)"
+        if [[ "$SUMMARY_ONLY" -ne 1 ]]; then
+            echo "  Started $binary_name on port $port (PID $pid)"
+        fi
     done
 done
 
@@ -122,40 +138,54 @@ for i in "${!LANGUAGES[@]}"; do
 done
 
 echo
-echo "All $TOTAL_APPS app instances are running. Endpoints:"
-for i in "${!LANGUAGES[@]}"; do
-    lang="${LANGUAGES[$i]}"
-    for ((copy = 1; copy <= COPIES_PER_APP; copy++)); do
-        port=$((PORTS[$i] + (copy - 1) * ${#LANGUAGES[@]}))
-        echo "  curl http://127.0.0.1:$port/hello/$lang"
+echo "All $TOTAL_APPS app instances are running."
+if [[ "$SUMMARY_ONLY" -ne 1 ]]; then
+    echo "Endpoints:"
+    for i in "${!LANGUAGES[@]}"; do
+        lang="${LANGUAGES[$i]}"
+        for ((copy = 1; copy <= COPIES_PER_APP; copy++)); do
+            port=$((PORTS[$i] + (copy - 1) * ${#LANGUAGES[@]}))
+            echo "  curl http://127.0.0.1:$port/hello/$lang"
+        done
     done
-done
+fi
 
 echo
 echo "Memory usage:"
 
 while true; do
     total_rss=0
-    total_uss=0
     total_pss=0
+    alive=0
 
-    printf "  %-16s %8s %8s %8s %s\n" "APP" "RSS" "USS" "PSS" "PID"
+    if [[ "$SUMMARY_ONLY" -ne 1 ]]; then
+        printf "  %-16s %8s %8s %s\n" "APP" "RSS" "PSS" "PID"
+    fi
     for i in "${!PIDS[@]}"; do
         pid="${PIDS[$i]}"
         binary_name="${BINARY_NAMES[$i]}"
 
         if kill -0 "$pid" 2>/dev/null; then
-            read -r rss uss pss < <(tree_memory_kb "$pid")
-            printf "  %-16s %5s KB %5s KB %5s KB  (PID %s)\n" "$binary_name" "$rss" "$uss" "$pss" "$pid"
+            read -r rss pss < <(tree_memory_kb "$pid")
+            if [[ "$SUMMARY_ONLY" -ne 1 ]]; then
+                printf "  %-16s %5s KB %5s KB  (PID %s)\n" "$binary_name" "$rss" "$pss" "$pid"
+            fi
             total_rss=$((total_rss + rss))
-            total_uss=$((total_uss + uss))
             total_pss=$((total_pss + pss))
-        else
-            printf "  %-16s %8s %8s %8s  (%s)\n" "$binary_name" "dead" "dead" "dead" "$pid"
+            alive=$((alive + 1))
+        elif [[ "$SUMMARY_ONLY" -ne 1 ]]; then
+            printf "  %-16s %8s %8s  (%s)\n" "$binary_name" "dead" "dead" "$pid"
         fi
     done
 
-    printf "  %-16s %5s KB %5s KB %5s KB\n" "TOTAL" "$total_rss" "$total_uss" "$total_pss"
+    total_rss_human="$(human_memory_kb "$total_rss")"
+    total_pss_human="$(human_memory_kb "$total_pss")"
+    if [[ "$SUMMARY_ONLY" -eq 1 ]]; then
+        printf "  TOTAL (%d/%d alive)  RSS: %s  PSS: %s\n" \
+            "$alive" "$TOTAL_APPS" "$total_rss_human" "$total_pss_human"
+    else
+        printf "  TOTAL  RSS: %s  PSS: %s\n" "$total_rss_human" "$total_pss_human"
+    fi
     echo
     sleep "$MEASURE_INTERVAL"
 done

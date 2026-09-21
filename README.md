@@ -12,6 +12,7 @@ build-all-apps.sh
 build-all-standalone.sh
 run.sh
 run-all.sh
+run-100.sh
 run-all-standalone.sh
 ```
 
@@ -86,7 +87,7 @@ Build one non-layered standalone native Micronaut executable per language:
 The 10 executables are written to `micronaut-application-layer/target/standalone/`.
 
 Run the 10 language-specific standalone executables and measure their combined
-RSS/USS/PSS usage. Build them first with `./build-all-standalone.sh`:
+RSS/PSS usage. Build them first with `./build-all-standalone.sh`:
 
 ```bash
 ./run-all-standalone.sh
@@ -96,19 +97,28 @@ Standalone instances use ports `8180` through `8189`, so both this runner and
 `./run-all.sh` can be used at the same time. Set `PORT_BASE` to choose another
 starting port, or set `MEASURE_INTERVAL` to change the measurement interval.
 
-To create and run 100 executable files—10 copies of each language app—use:
+To run 100 layered app instances—10 processes from each of the 10 existing
+language binaries—use:
 
 ```bash
-COPIES_PER_APP=10 ./build-all-apps.sh
-COPIES_PER_APP=10 ./run-all.sh
+./run-100.sh
+```
 
+This reuses the binaries already produced by `./build-all-apps.sh`; it does not
+rebuild or copy them. It uses ports `8080` through `8179` and prints only the
+cumulative RSS/PSS totals, together with the number of live processes. Memory
+totals include a human-readable MiB/GiB value and the exact value in KB.
+
+To create and run 100 distinct standalone executable files, use:
+
+```bash
 COPIES_PER_APP=10 ./build-all-standalone.sh
 COPIES_PER_APP=10 ./run-all-standalone.sh
 ```
 
-The copies are named `hello-english-1` through `hello-english-10`, and
-similarly for the other languages. Layered ports are `8080` through `8179`;
-standalone ports are `8180` through `8279`.
+The standalone copies are named `hello-english-1` through `hello-english-10`,
+and similarly for the other languages. Standalone ports are `8180` through
+`8279`.
 
 ## Run One App
 
@@ -130,7 +140,7 @@ Custom port:
 APP=swiss PORT=8090 ./run.sh
 ```
 
-The script prints RSS/USS/PSS samples while the app is running.
+The script prints RSS/PSS samples while the app is running.
 
 ## Run All Apps
 
@@ -138,7 +148,9 @@ The script prints RSS/USS/PSS samples while the app is running.
 ./run-all.sh
 ```
 
-This starts all 10 executables, waits for their endpoints, and prints live RSS/USS/PSS totals.
+This starts all 10 executables, waits for their endpoints, and prints live RSS/PSS totals.
+
+For 100 processes with cumulative-only memory output, run `./run-100.sh`.
 
 ## Verify
 
