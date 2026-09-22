@@ -31,8 +31,9 @@ require_runtime_artifacts() {
         exit 1
     fi
 
-    if [[ ! -f "$TARGET_DIR/libjavabaselayer.so" ]]; then
-        echo "Missing shared base layer: $TARGET_DIR/libjavabaselayer.so" >&2
+    layer_library="$(layer_library_name)"
+    if [[ ! -f "$TARGET_DIR/$layer_library" ]]; then
+        echo "Missing shared base layer: $TARGET_DIR/$layer_library" >&2
         echo "Build the layered apps first with ./build-all-apps.sh" >&2
         exit 1
     fi
@@ -81,10 +82,11 @@ trap cleanup EXIT INT TERM
 
 require_runtime_artifacts
 
-export LD_LIBRARY_PATH="$TARGET_DIR:${LD_LIBRARY_PATH:-}"
+runtime_library_path_var="$(runtime_library_path_var)"
+export "$runtime_library_path_var=$TARGET_DIR:${!runtime_library_path_var:-}"
 
 TOTAL_APPS=$((${#LANGUAGES[@]} * COPIES_PER_APP))
-echo "=== Starting $TOTAL_APPS Micronaut app instances sharing libjavabaselayer.so ==="
+echo "=== Starting $TOTAL_APPS Micronaut app instances sharing $layer_library ==="
 echo
 
 for i in "${!LANGUAGES[@]}"; do

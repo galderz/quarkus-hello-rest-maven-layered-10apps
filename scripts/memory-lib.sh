@@ -4,7 +4,17 @@ set -u
 
 children_pids() {
     local parent_pid="$1"
-    ps -o pid= --ppid "$parent_pid" 2>/dev/null | awk '{print $1}'
+
+    case "$(uname -s)" in
+        Darwin)
+            ps -axo pid=,ppid= 2>/dev/null \
+                | awk -v parent_pid="$parent_pid" '$2 == parent_pid {print $1}' \
+                || true
+            ;;
+        *)
+            ps -o pid= --ppid "$parent_pid" 2>/dev/null | awk '{print $1}' || true
+            ;;
+    esac
 }
 
 process_tree_pids() {
@@ -68,7 +78,7 @@ memory_kb_for_pid() {
         ' "$smaps_file" 2>/dev/null || echo "0 0"
     else
         local rss
-        rss="$(ps -o rss= -p "$pid" 2>/dev/null | awk '{sum += $1} END {print sum + 0}')"
+        rss="$(ps -o rss= -p "$pid" 2>/dev/null | awk '{sum += $1} END {print sum + 0}' || true)"
         printf "%d %d\n" "${rss:-0}" 0
     fi
 }

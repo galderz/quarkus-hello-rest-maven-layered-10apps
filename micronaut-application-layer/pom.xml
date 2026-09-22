@@ -243,6 +243,7 @@
                                             <directory>../base-layer/target</directory>
                                             <includes>
                                                 <include>libjavabaselayer.so</include>
+                                                <include>libjavabaselayer.dylib</include>
                                             </includes>
                                             <filtering>false</filtering>
                                         </resource>

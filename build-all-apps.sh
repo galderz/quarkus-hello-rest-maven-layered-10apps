@@ -31,4 +31,5 @@ done
 
 echo
 echo "==> Built layered Micronaut apps"
-ls -lh "$ROOT/micronaut-application-layer/target"/hello-* "$ROOT/micronaut-application-layer/target/libjavabaselayer.so"
+layer_library="$(layer_library_name)"
+ls -lh "$ROOT/micronaut-application-layer/target"/hello-* "$ROOT/micronaut-application-layer/target/$layer_library"

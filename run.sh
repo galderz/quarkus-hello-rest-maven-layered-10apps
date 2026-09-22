@@ -69,7 +69,8 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-export LD_LIBRARY_PATH="$TARGET_DIR:${LD_LIBRARY_PATH:-}"
+runtime_library_path_var="$(runtime_library_path_var)"
+export "$runtime_library_path_var=$TARGET_DIR:${!runtime_library_path_var:-}"
 
 echo
 echo "==> Starting $IMAGE_NAME on port $PORT"

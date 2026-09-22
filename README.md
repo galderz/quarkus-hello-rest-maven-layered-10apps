@@ -5,7 +5,7 @@ This project mirrors the Spring layered demo, but uses Micronaut. It builds 10 s
 The layout intentionally follows the original:
 
 ```text
-base-layer/                  # builds base-layer.nil and libjavabaselayer.so
+base-layer/                  # builds base-layer.nil and the shared layer library
 micronaut-application-layer/  # builds one native executable per language
 scripts/                     # shared app and memory helpers
 build-all-apps.sh
@@ -33,11 +33,11 @@ hello-swiss        /hello/swiss        Grüezi      port 8089
 
 ## Prerequisites
 
-- Linux x64
+- Linux x64 or macOS arm64
 - GraalVM JDK 25.1 EA or newer with `native-image`
 - `JAVA_HOME` pointing at that GraalVM
 
-Native Image Layers are Linux-only in this setup. The Maven compile/test path works on macOS, but the layered native builds should be run on Linux.
+The scripts select `libjavabaselayer.so` and `LD_LIBRARY_PATH` on Linux, or `libjavabaselayer.dylib` and `DYLD_LIBRARY_PATH` on macOS.
 
 ## Build
 
@@ -51,7 +51,8 @@ This first runs `mvn clean install` in `base-layer`, producing:
 
 ```text
 base-layer/target/base-layer.nil
-base-layer/target/libjavabaselayer.so
+base-layer/target/libjavabaselayer.so        # Linux
+base-layer/target/libjavabaselayer.dylib     # macOS
 ```
 
 Then it builds each Micronaut application layer with:
@@ -70,7 +71,8 @@ The `hello-app` profile compiles exactly one language controller into an isolate
 Final runtime artifacts are copied to:
 
 ```text
-micronaut-application-layer/target/libjavabaselayer.so
+micronaut-application-layer/target/libjavabaselayer.so        # Linux
+micronaut-application-layer/target/libjavabaselayer.dylib     # macOS
 micronaut-application-layer/target/hello-english
 micronaut-application-layer/target/hello-french
 ...

@@ -88,6 +88,28 @@ validate_copies_per_app() {
     fi
 }
 
+layer_library_name() {
+    case "$(uname -s)" in
+        Darwin)
+            echo "libjavabaselayer.dylib"
+            ;;
+        *)
+            echo "libjavabaselayer.so"
+            ;;
+    esac
+}
+
+runtime_library_path_var() {
+    case "$(uname -s)" in
+        Darwin)
+            echo "DYLD_LIBRARY_PATH"
+            ;;
+        *)
+            echo "LD_LIBRARY_PATH"
+            ;;
+    esac
+}
+
 port_for_app() {
     local index
     index="$(app_index "$1")" || return 1
@@ -107,8 +129,11 @@ build_base_layer() {
 ensure_base_layer_target() {
     local root="$1"
     local local_target="$root/base-layer/target"
+    local layer_library
 
-    if [[ -f "$local_target/base-layer.nil" && -f "$local_target/libjavabaselayer.so" ]]; then
+    layer_library="$(layer_library_name)"
+
+    if [[ -f "$local_target/base-layer.nil" && -f "$local_target/$layer_library" ]]; then
         return 0
     fi
 
@@ -121,6 +146,7 @@ publish_application_artifacts() {
     local copies="${3:-1}"
     local app_target="$root/micronaut-application-layer/target"
     local work_dir="$app_target/$image_name-build"
+    local layer_library
     local copy
     local output_name
 
@@ -129,5 +155,6 @@ publish_application_artifacts() {
         output_name="$(copy_name_for_image "$image_name" "$copy" "$copies")"
         cp "$work_dir/$image_name" "$app_target/$output_name"
     done
-    cp "$root/base-layer/target/libjavabaselayer.so" "$app_target/libjavabaselayer.so"
+    layer_library="$(layer_library_name)"
+    cp "$root/base-layer/target/$layer_library" "$app_target/$layer_library"
 }
