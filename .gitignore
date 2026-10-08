@@ -2,4 +2,4 @@ target/
 .loop-logs/
 *.log
 .DS_Store
-
+.idea
