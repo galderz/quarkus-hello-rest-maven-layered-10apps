@@ -1,11 +1,13 @@
 package example.quarkus.layered.single;
 
+import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
 @Path("/hello/spanish")
+@IfBuildProperty(name = "hello.language", stringValue = "spanish")
 public class HelloSpanish {
 
     private static final String GREETING = "Hola";
