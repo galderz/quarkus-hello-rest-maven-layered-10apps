@@ -54,7 +54,7 @@
             <artifactId>native-image-base</artifactId>
             <version>25.1.0-dev</version>
             <scope>system</scope>
-            <systemPath>${env.JAVA_HOME}/lib/svm/builder/native-image-base.jar</systemPath>
+            <systemPath>${env.GRAALVM_HOME}/lib/svm/builder/native-image-base.jar</systemPath>
         </dependency>
     </dependencies>
 
