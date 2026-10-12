@@ -31,6 +31,7 @@ for app in "${LANGUAGES[@]}"; do
             -Dhello.image="$image_name" \
             -Dhello.language="$lang" \
             clean package
+        mv "$build_dir/$image_name-runner" "$build_dir/$image_name"
     )
 
     for ((copy = 1; copy <= COPIES_PER_APP; copy++)); do

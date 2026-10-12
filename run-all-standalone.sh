@@ -67,7 +67,7 @@ trap cleanup EXIT INT TERM
 require_runtime_artifacts
 
 TOTAL_APPS=$((${#LANGUAGES[@]} * COPIES_PER_APP))
-echo "=== Starting $TOTAL_APPS standalone Micronaut app instances ==="
+echo "=== Starting $TOTAL_APPS standalone Quarkus app instances ==="
 echo
 
 for i in "${!LANGUAGES[@]}"; do
@@ -79,7 +79,7 @@ for i in "${!LANGUAGES[@]}"; do
         binary_name="$(copy_name_for_image "$image_name" "$copy" "$COPIES_PER_APP")"
         log_file="$(mktemp)"
 
-        "$TARGET_DIR/$binary_name" "--micronaut.server.port=$port" >"$log_file" 2>&1 &
+        "$TARGET_DIR/$binary_name" "-Dquarkus.http.port=$port" >"$log_file" 2>&1 &
         pid=$!
 
         PIDS+=("$pid")
