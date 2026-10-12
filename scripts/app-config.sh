@@ -125,16 +125,21 @@ port_for_app() {
 build_base_layer() {
     local root="$1"
 
-    echo "==> Building Micronaut base layer"
     (
-        cd "$root/base-layer"
-        ../mvnw --no-transfer-progress clean install
+        echo "==> Building Quarkus non-layered image"
+        cd "$root/quarkus-application-layer"
+        ../mvnw -Dnative package
+    )
+    (
+        echo "==> Building Quarkus base layer"
+        cd "$root/quarkus-base-layer"
+        ./build-layer-base.sh
     )
 }
 
 ensure_base_layer_target() {
     local root="$1"
-    local local_target="$root/base-layer/target"
+    local local_target="$root/quarkus-base-layer/target"
     local layer_library
 
     layer_library="$(layer_library_name)"

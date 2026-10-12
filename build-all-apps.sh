@@ -17,13 +17,17 @@ for app in "${LANGUAGES[@]}"; do
     echo
     echo "==> Building $image_name"
     (
-        cd "$ROOT/micronaut-application-layer"
+        cd "$ROOT/quarkus-application-layer"
         ../mvnw --no-transfer-progress \
-            -Pnative -Papp-layer -Phello-app \
+            -Pnative -Phello-app \
             -Dmaven.test.skip=true -DskipNativeTests \
             -Dhello.class="$hello_class" \
             -Dhello.image="$image_name" \
+            -Dhello.language="$lang" \
+            -Dquarkus.native.sources-only=true \
             package
+
+        ./build-layer-app.sh $image_name
     )
 
     publish_application_artifacts "$ROOT" "$image_name" "$COPIES_PER_APP"

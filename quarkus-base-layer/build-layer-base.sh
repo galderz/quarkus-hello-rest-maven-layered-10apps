@@ -3,7 +3,7 @@ set -ex
 
 mkdir -p target
 
-SRC_JAR_DIR="native/getting-started/target/getting-started-1.0.0-SNAPSHOT-native-image-source-jar"
+SRC_JAR_DIR="../quarkus-application-layer/target/quarkus-hello-rest-maven-layered-1.0.0-SNAPSHOT-native-image-source-jar"
 
 DEBUG_ARGS=()
 if [[ "$1" == "--with-debug=true" ]]; then
@@ -145,12 +145,11 @@ MODULE_ARGS=$(IFS=,; echo "${MODULE[*]}")
 
 LAYER_ARGS=(
     "--initialize-at-build-time="
-    "-H:+PrintClassInitialization"
     "${APP_LAYER_INIT_ARGS[@]}"
     "-H:BuildOutputJSONFile=target/build-output-layer-base.json"
-    "-H:LayerCreate=libquarkusbaselayer.nil,${MODULE_ARGS},${LAYER_PACKAGE_ARGS}"
+    "-H:LayerCreate=base-layer.nil,${MODULE_ARGS},${LAYER_PACKAGE_ARGS}"
     "-cp" "${SRC_JAR_DIR}/lib/*"
-    "-o" "libquarkusbaselayer"
+    "-o" "libjavabaselayer"
     "-H:Path=./target"
 )
 
