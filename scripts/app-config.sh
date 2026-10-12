@@ -68,6 +68,12 @@ image_name_for_app() {
     echo "${IMAGE_NAMES[$index]}"
 }
 
+language_for_app() {
+    local index
+    index="$(app_index "$1")" || return 1
+    echo "${LANGUAGES[$index]}"
+}
+
 copy_name_for_image() {
     local image_name="$1"
     local copy="$2"

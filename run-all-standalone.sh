@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TARGET_DIR="$ROOT/micronaut-application-layer/target/standalone"
+TARGET_DIR="$ROOT/quarkus-application-layer/target/standalone"
 MEASURE_INTERVAL="${MEASURE_INTERVAL:-10}"
 PORT_BASE="${PORT_BASE:-8180}"
 COPIES_PER_APP="${COPIES_PER_APP:-1}"
