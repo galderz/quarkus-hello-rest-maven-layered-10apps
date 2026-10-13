@@ -2,15 +2,15 @@
 
 LANGUAGES=(
   english
-  french
-  german
-  spanish
-  italian
-  japanese
-  ukrainian
-  portuguese
-  korean
-  swiss
+#  french
+#  german
+#  spanish
+#  italian
+#  japanese
+#  ukrainian
+#  portuguese
+#  korean
+#  swiss
 )
 
 HELLO_CLASSES=(
@@ -124,6 +124,7 @@ port_for_app() {
 
 build_base_layer() {
     local root="$1"
+    local is_debug="$2"
 
     (
         echo "==> Building Quarkus non-layered image"
@@ -133,12 +134,13 @@ build_base_layer() {
     (
         echo "==> Building Quarkus base layer"
         cd "$root/quarkus-base-layer"
-        ./build-layer-base.sh
+        ./build-layer-base.sh "$is_debug"
     )
 }
 
 ensure_base_layer_target() {
     local root="$1"
+    local is_debug="$2"
     local local_target="$root/quarkus-base-layer/target"
     local layer_library
 
@@ -148,14 +150,14 @@ ensure_base_layer_target() {
         return 0
     fi
 
-    build_base_layer "$root"
+    build_base_layer "$root" "$is_debug"
 }
 
 publish_application_artifacts() {
     local root="$1"
     local image_name="$2"
     local copies="${3:-1}"
-    local app_target="$root/micronaut-application-layer/target"
+    local app_target="$root/quarkus-application-layer/target"
     local work_dir="$app_target/$image_name-build"
     local layer_library
     local copy

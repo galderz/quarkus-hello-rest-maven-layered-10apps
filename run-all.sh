@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+set -x
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TARGET_DIR="$ROOT/micronaut-application-layer/target"
+TARGET_DIR="$ROOT/quarkus-application-layer/target"
 MEASURE_INTERVAL="${MEASURE_INTERVAL:-10}"
 COPIES_PER_APP="${COPIES_PER_APP:-1}"
 REUSE_APP_BINARIES="${REUSE_APP_BINARIES:-0}"
@@ -86,7 +87,7 @@ runtime_library_path_var="$(runtime_library_path_var)"
 export "$runtime_library_path_var=$TARGET_DIR:${!runtime_library_path_var:-}"
 
 TOTAL_APPS=$((${#LANGUAGES[@]} * COPIES_PER_APP))
-echo "=== Starting $TOTAL_APPS Micronaut app instances sharing $layer_library ==="
+echo "=== Starting $TOTAL_APPS Quarkus app instances sharing $layer_library ==="
 echo
 
 for i in "${!LANGUAGES[@]}"; do
@@ -102,7 +103,7 @@ for i in "${!LANGUAGES[@]}"; do
         fi
         log_file="$(mktemp)"
 
-        "$TARGET_DIR/$binary_name" "--micronaut.server.port=$port" >"$log_file" 2>&1 &
+        LD_LIBRARY_PATH="$TARGET_DIR" "$TARGET_DIR/$binary_name" "-Dquarkus.http.port=$port" >"$log_file" 2>&1 &
         pid=$!
 
         PIDS+=("$pid")

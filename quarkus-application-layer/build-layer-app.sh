@@ -6,10 +6,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 app_image_name=$1
 build_dir="${ROOT}/target/${app_image_name}-build"
 
-SRC_JAR_DIR="${build_dir}/quarkus-hello-rest-maven-layered-1.0.0-SNAPSHOT-native-image-source-jar"
+SRC_JAR_DIR="${build_dir}/native-sources"
 
 DEBUG_ARGS=()
-if [[ "$1" == "--with-debug=true" ]]; then
+if [[ "$2" == "--with-debug=true" ]]; then
     DEBUG_ARGS+=(
         "-g"
 #        "-H:+SourceLevelDebug"
@@ -125,10 +125,10 @@ for arg in "${RUN_INIT_FEATURE[@]}"; do
 done
 
 LAYER_ARGS=(
-    "-H:LayerUse=../quarkus-base-layer/target/libjavabaselayer.nil"
+    "-H:LayerUse=../quarkus-base-layer/target/base-layer.nil"
     "-H:LinkerRPath=."
-    "-jar" "${SRC_JAR_DIR}/quarkus-hello-rest-maven-layered-1.0.0-SNAPSHOT-runner.jar"
-    "-o" "getting-started-1.0.0-SNAPSHOT-runner"
+    "-jar" "${SRC_JAR_DIR}/${app_image_name}-runner.jar"
+    "-o" "${app_image_name}"
     "-H:Path=${build_dir}"
 )
 
