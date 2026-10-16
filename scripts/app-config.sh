@@ -2,15 +2,15 @@
 
 LANGUAGES=(
   english
-#  french
-#  german
-#  spanish
-#  italian
-#  japanese
-#  ukrainian
-#  portuguese
-#  korean
-#  swiss
+  french
+  german
+  spanish
+  italian
+  japanese
+  ukrainian
+  portuguese
+  korean
+  swiss
 )
 
 HELLO_CLASSES=(
@@ -169,5 +169,5 @@ publish_application_artifacts() {
         cp "$work_dir/$image_name" "$app_target/$output_name"
     done
     layer_library="$(layer_library_name)"
-    cp "$root/base-layer/target/$layer_library" "$app_target/$layer_library"
+    cp "$root/quarkus-base-layer/target/$layer_library" "$app_target/$layer_library"
 }
